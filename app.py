@@ -1,175 +1,88 @@
+# File: app.py
+"""
+Fruit Store Management System - Main Application
+A Streamlit application for managing fruit inventory.
+"""
+import logging
+import os
+from datetime import datetime
+from typing import List, Tuple, Optional, Dict, Any
+
 import streamlit as st
 import pandas as pd
-from database import init_connection
-from crud import (
-    get_all_fruits,
-    get_fruit_by_id,
-    add_fruit,
-    update_fruit,
-    delete_fruit
+
+from config import AppConfig
+from models.fruit import Fruit
+from services.database_service import DatabaseService
+from services.file_service import FileService
+from services.fruit_service import FruitService
+from ui.components import UIComponents
+from ui.pages.inventory_page import InventoryPage
+from ui.pages.add_fruit_page import AddFruitPage
+from ui.pages.update_fruit_page import UpdateFruitPage
+from ui.pages.delete_fruit_page import DeleteFruitPage
+
+# Configure logging
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),
+        logging.StreamHandler()
+    ]
 )
 
-# Page configuration
-st.set_page_config(
-    page_title="Fruit Store Management",
-    page_icon="🍎",
-    layout="wide"
-)
-
-# Initialize database connection
-conn = init_connection()
-
-# Sidebar navigation
-st.sidebar.title("Fruit Store Management")
-page = st.sidebar.selectbox("Choose an action", ["View Inventory", "Add Fruit", "Update Fruit", "Delete Fruit"])
-
-# Function to display all fruits
-def display_fruits():
-    st.title("Fruit Inventory 🍎🍌🍇")
+class FruitStoreApp:
+    """Main application class implementing the Facade pattern"""
     
-    # Get all fruits from database
-    fruits = get_all_fruits(conn)
-    
-    if not fruits:
-        st.info("No fruits in inventory. Add some fruits!")
-        return
-    
-    # Convert to DataFrame for better display
-    df = pd.DataFrame(fruits, columns=["ID", "Name", "Price", "Quantity", "Category"])
-    
-    # Display as table
-    st.dataframe(df, use_container_width=True)
-    
-    # Display some statistics
-    st.subheader("Inventory Statistics")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Fruit Types", len(fruits))
-    with col2:
-        total_quantity = sum(fruit[3] for fruit in fruits)
-        st.metric("Total Quantity", total_quantity)
-    with col3:
-        total_value = sum(fruit[2] * fruit[3] for fruit in fruits)
-        st.metric("Inventory Value", f"${total_value:.2f}")
-    
-    # Create a bar chart for quantity by fruit
-    st.subheader("Quantity by Fruit")
-    chart_data = pd.DataFrame({
-        'Fruit': [fruit[1] for fruit in fruits],
-        'Quantity': [fruit[3] for fruit in fruits]
-    })
-    st.bar_chart(chart_data.set_index('Fruit'))
-    
-    # Create a pie chart for category distribution
-    st.subheader("Category Distribution")
-    category_counts = {}
-    for fruit in fruits:
-        category = fruit[4]
-        if category in category_counts:
-            category_counts[category] += 1
-        else:
-            category_counts[category] = 1
-    
-    category_data = pd.DataFrame({
-        'Category': list(category_counts.keys()),
-        'Count': list(category_counts.values())
-    })
-    st.pie_chart(category_data.set_index('Category'))
-
-# Function to add a new fruit
-def add_new_fruit():
-    st.title("Add New Fruit 🍏")
-    
-    with st.form("add_fruit_form"):
-        name = st.text_input("Fruit Name")
-        price = st.number_input("Price ($)", min_value=0.01, step=0.01, format="%.2f")
-        quantity = st.number_input("Quantity", min_value=1, step=1)
-        category = st.selectbox("Category", ["Fresh Fruits", "Dried Fruits", "Exotic Fruits", "Berries", "Citrus", "Other"])
+    def __init__(self):
+        """Initialize the application and its dependencies"""
+        # Configure the Streamlit page
+        st.set_page_config(
+            page_title=AppConfig.PAGE_TITLE,
+            page_icon=AppConfig.PAGE_ICON,
+            layout=AppConfig.LAYOUT
+        )
         
-        submitted = st.form_submit_button("Add Fruit")
+        # Initialize services (Dependency Injection)
+        self.db_service = DatabaseService()
+        self.file_service = FileService(AppConfig.IMAGE_DIR)
+        self.fruit_service = FruitService(self.db_service)
         
-        if submitted:
-            if name:
-                add_fruit(conn, name, price, quantity, category)
-                st.success(f"Successfully added {name} to inventory!")
-                st.balloons()
-            else:
-                st.error("Fruit name cannot be empty!")
+        # Initialize UI components
+        self.ui = UIComponents()
+        
+        # Initialize pages (Strategy Pattern)
+        self.pages = {
+            "View Inventory": InventoryPage(self.fruit_service, self.ui),
+            "Add Fruit": AddFruitPage(self.fruit_service, self.file_service, self.ui),
+            "Update Fruit": UpdateFruitPage(self.fruit_service, self.file_service, self.ui),
+            "Delete Fruit": DeleteFruitPage(self.fruit_service, self.ui)
+        }
+        
+        # Create sidebar navigation
+        self._setup_sidebar()
+    
+    def _setup_sidebar(self) -> None:
+        """Set up the sidebar navigation menu"""
+        st.sidebar.title("Fruit Store Management")
+        self.current_page = st.sidebar.selectbox(
+            "Choose an action", 
+            list(self.pages.keys())
+        )
+        
+        # Add footer information
+        st.sidebar.markdown("---")
+        st.sidebar.info(f"{AppConfig.APP_NAME} v{AppConfig.VERSION}")
+    
+    def run(self) -> None:
+        """Run the application - display the selected page"""
+        # Get the appropriate page based on selection and render it
+        current_page = self.pages[self.current_page]
+        current_page.render()
 
-# Function to update an existing fruit
-def update_existing_fruit():
-    st.title("Update Fruit 🔄")
-    
-    # Get all fruits for selection
-    fruits = get_all_fruits(conn)
-    
-    if not fruits:
-        st.info("No fruits in inventory to update.")
-        return
-    
-    # Create a selection box with fruit names
-    fruit_names = [f"{fruit[0]} - {fruit[1]}" for fruit in fruits]
-    selected_fruit = st.selectbox("Select a fruit to update", fruit_names)
-    
-    # Extract the ID from the selection
-    fruit_id = int(selected_fruit.split(" - ")[0])
-    
-    # Get current fruit data
-    fruit_data = get_fruit_by_id(conn, fruit_id)
-    
-    if fruit_data:
-        with st.form("update_fruit_form"):
-            name = st.text_input("Fruit Name", value=fruit_data[1])
-            price = st.number_input("Price ($)", min_value=0.01, step=0.01, value=float(fruit_data[2]), format="%.2f")
-            quantity = st.number_input("Quantity", min_value=0, step=1, value=int(fruit_data[3]))
-            category = st.selectbox("Category", 
-                                   ["Fresh Fruits", "Dried Fruits", "Exotic Fruits", "Berries", "Citrus", "Other"],
-                                   index=["Fresh Fruits", "Dried Fruits", "Exotic Fruits", "Berries", "Citrus", "Other"].index(fruit_data[4]) if fruit_data[4] in ["Fresh Fruits", "Dried Fruits", "Exotic Fruits", "Berries", "Citrus", "Other"] else 5)
-            
-            submitted = st.form_submit_button("Update Fruit")
-            
-            if submitted:
-                if name:
-                    update_fruit(conn, fruit_id, name, price, quantity, category)
-                    st.success(f"Successfully updated {name}!")
-                else:
-                    st.error("Fruit name cannot be empty!")
 
-# Function to delete a fruit
-def delete_existing_fruit():
-    st.title("Delete Fruit 🗑️")
-    
-    # Get all fruits for selection
-    fruits = get_all_fruits(conn)
-    
-    if not fruits:
-        st.info("No fruits in inventory to delete.")
-        return
-    
-    # Create a selection box with fruit names
-    fruit_names = [f"{fruit[0]} - {fruit[1]}" for fruit in fruits]
-    selected_fruit = st.selectbox("Select a fruit to delete", fruit_names)
-    
-    # Extract the ID from the selection
-    fruit_id = int(selected_fruit.split(" - ")[0])
-    fruit_name = selected_fruit.split(" - ")[1]
-    
-    # Confirm deletion
-    if st.button(f"Delete {fruit_name}", type="primary"):
-        delete_fruit(conn, fruit_id)
-        st.success(f"Successfully deleted {fruit_name}!")
-        st.experimental_rerun()
-
-# Display the selected page
-if page == "View Inventory":
-    display_fruits()
-elif page == "Add Fruit":
-    add_new_fruit()
-elif page == "Update Fruit":
-    update_existing_fruit()
-elif page == "Delete Fruit":
-    delete_existing_fruit()
-
-# Footer
-st.sidebar.markdown("---")
-st.sidebar.info("Fruit Store Management System v1.0")
+# Entry point of the application
+if __name__ == "__main__":
+    app = FruitStoreApp()
+    app.run()

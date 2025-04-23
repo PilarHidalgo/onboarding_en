@@ -1,7 +1,3 @@
-okok"""Page module initialization for the fruit inventory management application.
-
-This module exports all page classes to make them easily importable from the ui.pages package.
-"""
 
 from ui.pages.inventory_page import InventoryPage
 from ui.pages.add_fruit_page import AddFruitPage

@@ -14,7 +14,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 # Import UI components
-from ui.app import FruitInventoryApp
+from app import FruitInventoryApp
 from ui.page import Page
 from ui.components import (
     StatusBar,

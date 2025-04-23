@@ -189,3 +189,62 @@ def generate_fruit_recommendation(purchase_history):
     
     # Return top 3 recommendations or fewer if not enough
     return recommendations[:3]
+
+# Add to utils/helpers.py
+
+def generate_receipt(cart_items, subtotal, discount=0.0, total=None):
+    """
+    Generate a formatted receipt string
+    
+    Args:
+        cart_items: Dictionary of items in cart with quantities and prices
+        subtotal: Original total before discount
+        discount: Discount amount applied (default 0.0)
+        total: Final total after discount (if None, will be calculated)
+        
+    Returns:
+        str: Formatted receipt string
+    """
+    if total is None:
+        total = subtotal - discount
+    
+    # Get current date and time
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Build receipt
+    receipt = [
+        "=" * 40,
+        "FRESH FRUITS MARKET",
+        "=" * 40,
+        f"Date: {current_time}",
+        "-" * 40,
+        "ITEMS:",
+        "-" * 40,
+    ]
+    
+    # Add items
+    for item, details in cart_items.items():
+        qty = details['quantity']
+        price = details['price']
+        item_total = details['total']
+        receipt.append(f"{item:<20} {qty:>3} x ${price:>6.2f} = ${item_total:>7.2f}")
+    
+    # Add totals
+    receipt.extend([
+        "-" * 40,
+        f"{'Subtotal:':<30} ${subtotal:>7.2f}",
+    ])
+    
+    # Add discount if any
+    if discount > 0:
+        receipt.append(f"{'Discount:':<30} ${discount:>7.2f}")
+    
+    receipt.extend([
+        f"{'Total:':<30} ${total:>7.2f}",
+        "=" * 40,
+        "Thank you for shopping with us!",
+        "Please come again!",
+        "=" * 40
+    ])
+    
+    return "\n".join(receipt)

@@ -1,0 +1,31 @@
+name,price,quantity,category,origin,organic,description
+Apple,1.99,150,Core Fruits,USA,True,Fresh red apples, perfect for snacking or baking.
+Banana,0.59,200,Tropical,Ecuador,False,Ripe yellow bananas, rich in potassium.
+Orange,1.29,100,Citrus,Florida,True,Juicy oranges, excellent source of vitamin C.
+Strawberry,3.99,50,Berries,California,True,Sweet red strawberries, perfect for desserts.
+Mango,2.49,75,Tropical,Mexico,False,Sweet and juicy mangoes, tropical delight.
+Blueberry,4.99,40,Berries,Maine,True,Antioxidant-rich blueberries, great for smoothies.
+Watermelon,5.99,30,Melons,Texas,False,Refreshing watermelon, perfect for hot summer days.
+Pineapple,3.49,45,Tropical,Costa Rica,False,Sweet and tangy pineapple, tropical favorite.
+Grapes,2.99,80,Berries,California,True,Sweet seedless grapes, perfect snack.
+Peach,1.79,65,Stone Fruits,Georgia,True,Juicy peaches, summer favorite.
+Kiwi,0.99,90,Exotic,New Zealand,False,Tangy kiwi fruit, rich in vitamin C.
+Lemon,0.79,120,Citrus,Italy,True,Zesty lemons, perfect for cooking and drinks.
+Avocado,2.29,60,Other,Mexico,True,Creamy avocados, great for guacamole.
+Cherry,4.49,35,Stone Fruits,Washington,False,Sweet cherries, summer treat.
+Pear,1.89,70,Core Fruits,Oregon,True,Juicy pears, sweet and refreshing.
+Lime,0.89,85,Citrus,Mexico,False,Tangy limes, perfect for cocktails and cooking.
+Raspberry,4.79,30,Berries,Washington,True,Delicate raspberries, sweet and tart.
+Plum,1.69,55,Stone Fruits,California,True,Sweet plums with juicy flesh.
+Papaya,2.99,40,Tropical,Hawaii,False,Tropical papaya with sweet orange flesh.
+Blackberry,3.99,25,Berries,Oregon,True,Rich blackberries, perfect for jams and desserts.
+Grapefruit,1.49,60,Citrus,Texas,True,Tangy grapefruit, great for breakfast.
+Cantaloupe,3.29,35,Melons,California,False,Sweet orange-fleshed melon.
+Apricot,2.19,45,Stone Fruits,Turkey,True,Sweet and tangy apricots.
+Dragon Fruit,4.99,20,Exotic,Vietnam,False,Exotic dragon fruit with mild sweet flavor.
+Pomegranate,2.79,30,Other,India,True,Antioxidant-rich pomegranate with juicy seeds.
+Fig,3.49,25,Other,Greece,True,Sweet figs with soft flesh.
+Guava,1.99,40,Tropical,Brazil,False,Aromatic guava with tropical flavor.
+Passion Fruit,2.99,30,Exotic,Colombia,True,Tart passion fruit with edible seeds.
+Coconut,3.99,25,Tropical,Philippines,False,Fresh coconuts with sweet water and meat.
+Nectarine,1.89,55,Stone Fruits,Spain,True,Smooth-skinned relative of the peach.

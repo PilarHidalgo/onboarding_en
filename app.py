@@ -1,8 +1,10 @@
+# File: app.py
 # Import required libraries
 import streamlit as st  # Web app framework
 import pandas as pd     # Data manipulation
 import os
-from utils.helpers import calculate_total, apply_discount  # Custom helper functions
+from datetime import datetime  # Added missing import for datetime
+from utils.helpers import calculate_total, apply_discount, generate_receipt  # Added generate_receipt import
 
 # Configure the Streamlit page layout and appearance
 st.set_page_config(
@@ -158,6 +160,7 @@ def show_shop_page(fruits_df):
         st.sidebar.write(f"**Subtotal:** ${cart_total:.2f}")
         
         # Discount code functionality
+        discount = 0.0  # Initialize discount variable
         discount_code = st.sidebar.text_input("Discount Code")
         if discount_code:
             discount = apply_discount(discount_code, cart_total)
@@ -167,10 +170,29 @@ def show_shop_page(fruits_df):
         
         st.sidebar.write(f"**Total:** ${cart_total:.2f}")
         
-        # Checkout button
-        if st.sidebar.button("Checkout"):
+        # Create two columns for checkout and receipt buttons
+        col1, col2 = st.sidebar.columns(2)
+        
+        # Checkout button in first column
+        if col1.button("Checkout"):
             st.sidebar.success("Order placed successfully! Thank you for shopping with us.")
             # Placeholder for order processing logic
+        
+        # Print receipt button in second column
+        if col2.button("Print Receipt"):
+            receipt = generate_receipt(cart_items, cart_total + discount, discount, cart_total)
+            
+            # Display receipt in a new section
+            with st.expander("Receipt", expanded=True):
+                # Add download button for receipt
+                st.download_button(
+                    label="Download Receipt",
+                    data=receipt,
+                    file_name=f"receipt_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                    mime="text/plain"
+                )
+                # Display receipt in monospace font
+                st.text(receipt)
     else:
         st.sidebar.write("Your cart is empty.")
 
@@ -228,7 +250,6 @@ def show_inventory_page(fruits_df):
             st.error("Please fill in all required fields.")
 
 # Analytics page with charts and statistics
-
 def show_analytics_page(fruits_df):
     st.title("Fruit Store Analytics")
     
@@ -275,132 +296,3 @@ def show_analytics_page(fruits_df):
 # Application entry point
 if __name__ == "__main__":
     main()
-
-# Add to TestHelperFunctions class in test_app.py
-
-def test_generate_receipt(self):
-    """Test generate_receipt function"""
-    cart_items = {
-        'Apple': {'quantity': 2, 'price': 1.20, 'total': 2.40},
-        'Banana': {'quantity': 3, 'price': 0.50, 'total': 1.50}
-    }
-    subtotal = 3.90
-    discount = 0.39
-    total = 3.51
-    
-    receipt = generate_receipt(cart_items, subtotal, discount, total)
-    
-    # Check that receipt contains all required elements
-    self.assertIn("FRESH FRUITS MARKET", receipt)
-    self.assertIn("Date:", receipt)
-    self.assertIn("Apple", receipt)
-    self.assertIn("Banana", receipt)
-    self.assertIn("Subtotal:", receipt)
-    self.assertIn("Discount:", receipt)
-    self.assertIn("Total:", receipt)
-    self.assertIn("Thank you for shopping with us!", receipt)
-    
-    # Check specific values
-    self.assertIn("$   3.90", receipt)  # Subtotal
-    self.assertIn("$   0.39", receipt)  # Discount
-    self.assertIn("$   3.51", receipt)  # Total
-
-def test_generate_receipt_no_discount(self):
-    """Test generate_receipt function without discount"""
-    cart_items = {
-        'Apple': {'quantity': 2, 'price': 1.20, 'total': 2.40}
-    }
-    subtotal = 2.40
-    
-    receipt = generate_receipt(cart_items, subtotal)
-    
-    # Check that receipt doesn't contain discount line
-    self.assertNotIn("Discount:", receipt)
-    self.assertIn("$   2.40", receipt)  # Total should equal subtotal
-
-# Add to TestAppFunctions class
-
-def test_show_shop_page_print_receipt(self):
-    """Test print receipt functionality in shop page"""
-    # Set up session state with items in cart
-    self.st_mock.session_state = {
-        "qty_Apple": 2,
-        "qty_Banana": 3
-    }
-    
-    # Set up discount code
-    self.st_mock.text_input_values = {"Discount Code": "FRESH10"}
-    
-    # Set up print receipt button
-    self.st_mock.buttons = {"Print Receipt": True}
-    
-    self.app.show_shop_page(self.df)
-    
-    # Check that receipt was generated
-    self.assertTrue(any("FRESH FRUITS MARKET" in text for text in self.st_mock.markdown_content))
-    self.assertTrue(any("Download Receipt" in text for text in self.st_mock.markdown_content))
-
-
-# Modify the show_shop_page function in app.py
-
-def show_shop_page(fruits_df):
-    st.title("Shop Fresh Fruits 🛒")
-    
-    # [Previous filter code remains the same...]
-    
-    # Shopping cart
-    st.sidebar.header("Your Cart 🛒")
-    
-    cart_items = {}
-    cart_total = 0
-    
-    for _, fruit in filtered_df.iterrows():
-        quantity = st.session_state.get(f"qty_{fruit['name']}", 0)
-        if quantity > 0:
-            item_total = quantity * fruit["price"]
-            cart_items[fruit["name"]] = {"quantity": quantity, "price": fruit["price"], "total": item_total}
-            cart_total += item_total
-    
-    if cart_items:
-        for item, details in cart_items.items():
-            st.sidebar.write(f"{item}: {details['quantity']} x ${details['price']:.2f} = ${details['total']:.2f}")
-        
-        st.sidebar.write("---")
-        st.sidebar.write(f"**Subtotal:** ${cart_total:.2f}")
-        
-        # Apply discount
-        discount = 0.0
-        discount_code = st.sidebar.text_input("Discount Code")
-        if discount_code:
-            discount = apply_discount(discount_code, cart_total)
-            if discount > 0:
-                st.sidebar.success(f"Discount applied: ${discount:.2f}")
-                cart_total -= discount
-        
-        st.sidebar.write(f"**Total:** ${cart_total:.2f}")
-        
-        # Create two columns for checkout and receipt buttons
-        col1, col2 = st.sidebar.columns(2)
-        
-        # Checkout button in first column
-        if col1.button("Checkout"):
-            st.sidebar.success("Order placed successfully! Thank you for shopping with us.")
-            # In a real app, you would process the order here
-        
-        # Print receipt button in second column
-        if col2.button("Print Receipt"):
-            receipt = generate_receipt(cart_items, cart_total + discount, discount, cart_total)
-            
-            # Display receipt in a new section
-            with st.expander("Receipt", expanded=True):
-                # Add download button for receipt
-                st.download_button(
-                    label="Download Receipt",
-                    data=receipt,
-                    file_name=f"receipt_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                    mime="text/plain"
-                )
-                # Display receipt in monospace font
-                st.text(receipt)
-    else:
-        st.sidebar.write("Your cart is empty.")

@@ -1,0 +1,21 @@
+name,price,stock,category,organic
+Apple,1.20,100,Core Fruits,True
+Banana,0.50,150,Tropical,False
+Orange,0.80,80,Citrus,True
+Strawberry,2.50,50,Berries,True
+Mango,2.00,30,Tropical,False
+Pineapple,3.00,20,Tropical,False
+Grapes,4.00,60,Berries,True
+Watermelon,5.00,15,Melon,False
+Blueberry,3.50,40,Berries,True
+Peach,1.75,45,Stone Fruit,True
+Lemon,0.60,70,Citrus,True
+Lime,0.50,65,Citrus,False
+Kiwi,1.00,55,Exotic,True
+Dragon Fruit,4.50,25,Exotic,False
+Papaya,2.75,35,Tropical,True
+Plum,1.50,40,Stone Fruit,False
+Cherry,3.75,30,Stone Fruit,True
+Pomegranate,3.25,25,Exotic,True
+Raspberry,3.00,35,Berries,True
+Blackberry,2.75,30,Berries,True
